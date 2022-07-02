@@ -8,16 +8,22 @@ import os
 
 
 class VOCDataset(Dataset):
-    def __init__(self, mode, augment, keep_difficult=False):
+    def __init__(self, mode, size=300, keep_difficult=False):
         """
         Args:
             mode(string): collection of data sources(support 'train'/'val'/'test')
+            size(int): the input image size
             keep_difficult(bool): check the diificult bounding box
         """
         self.mode = mode
+        self.size = size
         self.keep_difficult = keep_difficult
 
-        self.augment = MultipleTransform() if self.mode == "train" else BaseTransform()
+        self.augment = (
+            MultipleTransform(self.size)
+            if self.mode == "train"
+            else BaseTransform(self.size)
+        )
         self.VOCDATASET_PATH = os.path.join("..", "VOCdevkit")
         self.voc_class_names = (
             open(os.path.join(self.VOCDATASET_PATH, "VOC_CLASSES.txt"))
@@ -57,7 +63,7 @@ class VOCDataset(Dataset):
             _,
             bounding_boxes_relative_coords,
             bounding_boxes_class_labels,
-        ) = self.readAnnotation(voc_file_name + "xml")
+        ) = self.readAnnotation(voc_file_name + ".xml")
         (
             one_transformed_img,
             bounding_boxes_relative_coords,
@@ -72,8 +78,8 @@ class VOCDataset(Dataset):
             axis=1,
         )
         return (
-            torch.from_numpy(one_transformed_img).permute(2, 0, 1),
-            torch.from_numpy(ground_truth),
+            torch.from_numpy(one_transformed_img).permute(2, 0, 1).type(torch.float32),
+            torch.from_numpy(ground_truth).type(torch.float32),
         )
 
     def __len__(self):
@@ -147,7 +153,3 @@ class VOCDataset(Dataset):
         )
         img = img[:, :, (2, 1, 0)]
         return img
-
-
-dataset = VOCDataset(mode="train")
-print(len(dataset.voc_file_names))
