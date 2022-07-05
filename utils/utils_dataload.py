@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from augmentation import BaseTransform, MultipleTransform
+from utils_augmentation import BaseTransform, MultipleTransform
 import xml.etree.ElementTree as ET
 import numpy as np
 import torch
