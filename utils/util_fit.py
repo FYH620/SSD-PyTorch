@@ -22,13 +22,14 @@ def fit_one_epoch(
     val_loss = 0
     val_num = 0
 
+    print("Start Train")
     with tqdm(
         total=train_epoch_step,
         desc=f"Epoch {epoch + 1}/{end_epoch}",
         postfix=dict,
         mininterval=0.3,
     ) as pbar:
-        print("Start Train.")
+
         for train_imgs, train_labels in train_dataloader:
             with torch.no_grad():
                 if cuda:
@@ -61,13 +62,13 @@ def fit_one_epoch(
             )
             pbar.update(1)
 
+    print("Start Validation")
     with tqdm(
         total=val_epoch_step,
         desc=f"Epoch {epoch + 1}/{end_epoch}",
         postfix=dict,
         mininterval=0.3,
     ) as pbar:
-        print("Start Validation.")
         for val_imgs, val_labels in val_dataloader:
             with torch.no_grad():
                 if cuda:

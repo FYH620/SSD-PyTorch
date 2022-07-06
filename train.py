@@ -1,4 +1,5 @@
 import argparse
+import warnings
 import torch
 import os
 from torch.utils.data.dataloader import DataLoader
@@ -59,8 +60,8 @@ parser.add_argument(
 )
 parser.add_argument("--warmup_epoch", default=5, type=int, help="Warmup epoch.")
 parser.add_argument("--init_epoch", default=0, type=int, help="Start epoch.")
-parser.add_argument("--unfreeze_epoch", default=50, type=int, help="Unfreeze epoch.")
-parser.add_argument("--end_epoch", default=150, type=int, help="End epoch.")
+parser.add_argument("--unfreeze_epoch", default=40, type=int, help="Unfreeze epoch.")
+parser.add_argument("--end_epoch", default=120, type=int, help="End epoch.")
 parser.add_argument(
     "--num_workers",
     default=4,
@@ -68,7 +69,7 @@ parser.add_argument(
     help=" The Number of workers used in dataloading.",
 )
 parser.add_argument(
-    "--cuda", default=True, type=str2bool, help="Use CUDA to train model."
+    "--cuda", default=False, type=str2bool, help="Use CUDA to train model."
 )
 parser.add_argument(
     "--init_lr", default=1e-4, type=float, help="Initial learning rate."
@@ -83,6 +84,7 @@ parser.add_argument(
     help="Directory for saving checkpoint models.",
 )
 args = parser.parse_args()
+warnings.filterwarnings("ignore")
 
 
 if not os.path.exists(args.save_folder):
