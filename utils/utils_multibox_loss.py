@@ -1,8 +1,9 @@
 import torch
 import torch.nn.functional as F
 from torch import nn
-from utils_anchor import AnchorBoxes
-from utils_auxiliary import (
+from copy import deepcopy
+from .utils_anchor import AnchorBoxes
+from .utils_auxiliary import (
     iouMatrix,
     centerCoordsToPointCoords,
     encodeCenterCoords,
@@ -22,11 +23,11 @@ class MultiboxLoss(nn.Module):
 
     def forward(self, predict_offset_coords, predict_confidences, targets):
         num_batch = len(predict_offset_coords)
-        anchor_boxes = self.anchor_boxes.copy()
+        anchor_boxes = deepcopy(self.anchor_boxes_coords)
         num_anchors = len(anchor_boxes)
-        offset_coords_labels = torch.tensor(num_batch, num_anchors, 4)
-        confidence_labels = torch.LongTensor(num_batch, num_anchors)
-        for index in range(len(num_batch)):
+        offset_coords_labels = torch.zeros(num_batch, num_anchors, 4)
+        confidence_labels = torch.zeros(num_batch, num_anchors).type(torch.LongTensor)
+        for index in range(num_batch):
             offset_coords_labels[index], confidence_labels[index] = self._match(
                 targets[index].data
             )
@@ -45,7 +46,7 @@ class MultiboxLoss(nn.Module):
         loss_location = F.smooth_l1_loss(
             predict_positive_coords,
             positive_coords_labels,
-            size_average=False,
+            reduction="sum",
         )
 
         num_positive = is_positive_anchors.sum(dim=-1, keepdim=True)
@@ -73,7 +74,7 @@ class MultiboxLoss(nn.Module):
             -1, self.num_classes
         )
         label_c = confidence_labels[(is_positive_anchors + neg_index).gt(0)]
-        loss_classification = F.cross_entropy(predict_c, label_c, size_average=False)
+        loss_classification = F.cross_entropy(predict_c, label_c, reduction="sum")
         loss_location /= num_total_positive
         loss_classification /= num_total_positive
         return loss_location, loss_classification
@@ -105,7 +106,7 @@ class MultiboxLoss(nn.Module):
         return loc, conf
 
     def _safeLogSumExpFunction(self, x):
-        x_max = torch.max(x, dim=1, keepdim=True)
+        x_max = x.data.max()
         return x_max + (x - x_max).exp().sum(dim=1, keepdim=True).log()
 
     def _negativeLogSoftmaxClassficationLoss(self, x, gt_class_labels):

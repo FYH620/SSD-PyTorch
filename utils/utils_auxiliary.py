@@ -13,7 +13,7 @@ def intersactArea(boxes_a: Tensor, boxes_b: Tensor):
         boxes_a[:, 2:].unsqueeze(dim=1).expand(A, B, 2),
         boxes_b[:, 2:].unsqueeze(dim=0).expand(A, B, 2),
     )
-    inter = torch.clamp((max_xy, min_xy), min=0)
+    inter = torch.clamp((max_xy - min_xy), min=0)
     return inter[:, :, 0] * inter[:, :, 1]
 
 

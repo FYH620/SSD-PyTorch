@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from utils_augmentation import BaseTransform, MultipleTransform
+from .utils_augmentation import BaseTransform, MultipleTransform
 import xml.etree.ElementTree as ET
 import numpy as np
 import torch
@@ -24,7 +24,7 @@ class VOCDataset(Dataset):
             if self.mode == "train"
             else BaseTransform(self.size)
         )
-        self.VOCDATASET_PATH = os.path.join("..", "VOCdevkit")
+        self.VOCDATASET_PATH = os.path.join(".", "VOCdevkit")
         self.voc_class_names = (
             open(os.path.join(self.VOCDATASET_PATH, "VOC_CLASSES.txt"))
             .read()
