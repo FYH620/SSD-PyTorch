@@ -9,6 +9,7 @@ class BaseTransform(object):
 
     def __call__(self, img, boxes, labels):
         img = cv2.resize(img, dsize=(self.size, self.size))
+        img = img.astype(np.float32)
         img -= self.mean
         return img, boxes, labels
 

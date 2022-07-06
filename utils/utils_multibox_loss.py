@@ -19,6 +19,8 @@ class MultiboxLoss(nn.Module):
         self.neg_pos_ratio = neg_pos_ratio
         self.use_cuda = use_cuda
         self.anchor_boxes_coords = AnchorBoxes().getAnchorBoxesForEachImage()
+        if self.use_cuda:
+            self.anchor_boxes_coords = self.anchor_boxes_coords.cuda()
         self.loc_variance = [0.1, 0.2]
 
     def forward(self, predict_offset_coords, predict_confidences, targets):
@@ -27,6 +29,10 @@ class MultiboxLoss(nn.Module):
         num_anchors = len(anchor_boxes)
         offset_coords_labels = torch.zeros(num_batch, num_anchors, 4)
         confidence_labels = torch.zeros(num_batch, num_anchors).type(torch.LongTensor)
+        if self.use_cuda:
+            offset_coords_labels = offset_coords_labels.cuda()
+            confidence_labels = confidence_labels.cuda()
+
         for index in range(num_batch):
             offset_coords_labels[index], confidence_labels[index] = self._match(
                 targets[index].data

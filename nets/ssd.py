@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn.functional as F
 from torch import nn
 from torchsummaryX import summary
-from torchvision.models import vgg16_bn
+from torch.hub import load_state_dict_from_url
 
 
 class SSD(nn.Module):
@@ -182,9 +182,10 @@ class SSD(nn.Module):
             )
 
     def loadPretrainedWeights(self):
-        vgg = vgg16_bn(pretrained=True)
-        pretrained_model_keys = list(vgg.state_dict().keys())
-        pretrained_model_values = list(vgg.state_dict().values())
+        checkpoint = "https://download.pytorch.org/models/vgg16_bn-6c64b313.pth"
+        vgg_state_dict = load_state_dict_from_url(checkpoint)
+        pretrained_model_keys = list(vgg_state_dict.keys())
+        pretrained_model_values = list(vgg_state_dict.values())
         ssd_model_keys = list(self.state_dict().keys())
         ssd_model_values = list(self.state_dict().values())
 
@@ -199,8 +200,8 @@ class SSD(nn.Module):
             if isinstance(m, nn.Conv2d):
                 nn.init.xavier_normal_(m.weight)
             if isinstance(m, nn.BatchNorm2d):
-                nn.init.constant(m.weight, 1)
-                nn.init.constant(m.bias, 0)
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
 
 def showNetworkMainStructure():

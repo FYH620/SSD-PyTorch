@@ -43,11 +43,11 @@ def cosine_unfreeze_lr(epoch):
 
 parser = argparse.ArgumentParser(description="Configuration of training parameters.")
 parser.add_argument(
-    "--init_batchsize", default=16, type=int, help="Batch size for training."
+    "--init_batchsize", default=32, type=int, help="Batch size for training."
 )
 parser.add_argument(
     "--unfreeze_batchsize",
-    default=8,
+    default=16,
     type=int,
     help="Batch size for unfreeze training.",
 )
@@ -59,24 +59,24 @@ parser.add_argument(
 )
 parser.add_argument("--warmup_epoch", default=5, type=int, help="Warmup epoch.")
 parser.add_argument("--init_epoch", default=0, type=int, help="Start epoch.")
-parser.add_argument("--unfreeze_epoch", default=40, type=int, help="Unfreeze epoch.")
-parser.add_argument("--end_epoch", default=100, type=int, help="End epoch.")
+parser.add_argument("--unfreeze_epoch", default=50, type=int, help="Unfreeze epoch.")
+parser.add_argument("--end_epoch", default=150, type=int, help="End epoch.")
 parser.add_argument(
     "--num_workers",
-    default=8,
+    default=4,
     type=int,
     help=" The Number of workers used in dataloading.",
 )
 parser.add_argument(
-    "--cuda", default=False, type=str2bool, help="Use CUDA to train model."
+    "--cuda", default=True, type=str2bool, help="Use CUDA to train model."
 )
 parser.add_argument(
-    "--init_lr", default=1e-3, type=float, help="Initial learning rate."
+    "--init_lr", default=1e-4, type=float, help="Initial learning rate."
 )
 parser.add_argument(
-    "--unfreeze_lr", default=1e-4, type=float, help="Unfreeze learning rate."
+    "--unfreeze_lr", default=1e-5, type=float, help="Unfreeze learning rate."
 )
-parser.add_argument("--min_lr", default=5e-6, type=float, help="Min learning rate.")
+parser.add_argument("--min_lr", default=1e-6, type=float, help="Min learning rate.")
 parser.add_argument(
     "--save_folder",
     default="weights/",
@@ -99,10 +99,6 @@ def train():
         if step < 20:
             param.requires_grad = False
 
-    if args.cuda:
-        ssd_model = torch.nn.DataParallel(ssd_model)
-        cudnn.benchmark = True
-
     if args.resume:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         ssd_model.load_state_dict(torch.load(args.resume_path))
@@ -112,6 +108,7 @@ def train():
         print("Loading the pretrained weights done.")
 
     if args.cuda:
+        cudnn.benchmark = True
         ssd_model = ssd_model.cuda()
 
     print("Loading the dataset.")

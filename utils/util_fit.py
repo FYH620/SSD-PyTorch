@@ -28,11 +28,19 @@ def fit_one_epoch(
         postfix=dict,
         mininterval=0.3,
     ) as pbar:
+        print("Start Train.")
         for train_imgs, train_labels in train_dataloader:
             with torch.no_grad():
                 if cuda:
                     train_imgs = train_imgs.cuda()
-                    train_labels = train_labels.cuda()
+                    train_labels = [
+                        train_label.clone().detach().cuda()
+                        for train_label in train_labels
+                    ]
+                else:
+                    train_labels = [
+                        train_label.clone().detach() for train_label in train_labels
+                    ]
 
             model.train()
             optimizer.zero_grad()
@@ -59,10 +67,18 @@ def fit_one_epoch(
         postfix=dict,
         mininterval=0.3,
     ) as pbar:
+        print("Start Validation.")
         for val_imgs, val_labels in val_dataloader:
             with torch.no_grad():
-                val_imgs = val_imgs.cuda()
-                val_labels = train_labels.cuda()
+                if cuda:
+                    val_imgs = val_imgs.cuda()
+                    val_labels = [
+                        val_label.clone().detach().cuda() for val_label in val_labels
+                    ]
+                else:
+                    val_labels = [
+                        val_label.clone().detach() for val_label in val_labels
+                    ]
 
             model.eval()
             val_confs, val_locs = model(val_imgs)
