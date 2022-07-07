@@ -76,3 +76,27 @@ def decodeCenterCoords(anchor_coords, offset_coords, variance):
     gt_coords[:, 2] = anchor_coords[:, 2] * torch.exp(offset_coords[:, 2] * variance[1])
     gt_coords[:, 3] = anchor_coords[:, 3] * torch.exp(offset_coords[:, 3] * variance[1])
     return gt_coords
+
+
+def nonMaximumSuppression(
+    box_coords: Tensor,
+    box_confidences: Tensor,
+    iou_threshold=0.5,
+):
+    keep_index = []
+    if len(box_coords) == 0:
+        return keep_index, len(keep_index)
+
+    _, box_index = box_confidences.sort()
+
+    while len(box_index) != 0:
+        now_box_index = box_index[-1]
+        keep_index.append(now_box_index.item())
+        others_box_index = box_index[:-1]
+        iou_matrix = iouMatrix(
+            box_coords[now_box_index].unsqueeze(0),
+            box_coords[others_box_index],
+        ).squeeze(0)
+        box_index = others_box_index[iou_matrix.le(iou_threshold)]
+
+    return keep_index, len(keep_index)

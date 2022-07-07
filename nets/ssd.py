@@ -1,3 +1,4 @@
+from os import device_encoding
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -202,6 +203,10 @@ class SSD(nn.Module):
             if isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+
+    def loadTrainedWeights(self, weights_file_path):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.load_state_dict(torch.load(weights_file_path, map_location=device))
 
 
 def showNetworkMainStructure():
