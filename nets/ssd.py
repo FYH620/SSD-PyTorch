@@ -1,10 +1,10 @@
-from os import device_encoding
 import torch
 import numpy as np
 import torch.nn.functional as F
 from torch import nn
 from torchsummaryX import summary
 from torch.hub import load_state_dict_from_url
+from .configuration import voc_ssd300_configuration as config
 
 
 class SSD(nn.Module):
@@ -43,8 +43,20 @@ class SSD(nn.Module):
         self.bn4_3 = nn.BatchNorm2d(512)
         self.pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
         # num_anchors * (num_classes+background)
-        self.conf4_3 = nn.Conv2d(512, 4 * 21, kernel_size=3, padding=1, stride=1)
-        self.loc4_3 = nn.Conv2d(512, 4 * 4, kernel_size=3, padding=1, stride=1)
+        self.conf4_3 = nn.Conv2d(
+            512,
+            config["layer_num_anchors"][0] * 21,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
+        self.loc4_3 = nn.Conv2d(
+            512,
+            config["layer_num_anchors"][0] * 4,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
 
         # vgg->conv5
         self.conv5_1 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
@@ -64,38 +76,98 @@ class SSD(nn.Module):
         # extra->conv7
         self.conv7_1 = nn.Conv2d(1024, 1024, kernel_size=1)
         self.bn7_1 = nn.BatchNorm2d(1024)
-        self.conf7_1 = nn.Conv2d(1024, 6 * 21, kernel_size=3, padding=1, stride=1)
-        self.loc7_1 = nn.Conv2d(1024, 6 * 4, kernel_size=3, padding=1, stride=1)
+        self.conf7_1 = nn.Conv2d(
+            1024,
+            config["layer_num_anchors"][1] * 21,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
+        self.loc7_1 = nn.Conv2d(
+            1024,
+            config["layer_num_anchors"][1] * 4,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
 
         # extra->conv8
         self.conv8_1 = nn.Conv2d(1024, 256, kernel_size=1)
         self.bn8_1 = nn.BatchNorm2d(256)
         self.conv8_2 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1)
         self.bn8_2 = nn.BatchNorm2d(512)
-        self.conf8_2 = nn.Conv2d(512, 6 * 21, kernel_size=3, padding=1, stride=1)
-        self.loc8_2 = nn.Conv2d(512, 6 * 4, kernel_size=3, padding=1, stride=1)
+        self.conf8_2 = nn.Conv2d(
+            512,
+            config["layer_num_anchors"][2] * 21,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
+        self.loc8_2 = nn.Conv2d(
+            512,
+            config["layer_num_anchors"][2] * 4,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
 
         # extra->conv9
         self.conv9_1 = nn.Conv2d(512, 128, kernel_size=1)
         self.bn9_1 = nn.BatchNorm2d(128)
         self.conv9_2 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
         self.bn9_2 = nn.BatchNorm2d(256)
-        self.conf9_2 = nn.Conv2d(256, 6 * 21, kernel_size=3, padding=1, stride=1)
-        self.loc9_2 = nn.Conv2d(256, 6 * 4, kernel_size=3, padding=1, stride=1)
+        self.conf9_2 = nn.Conv2d(
+            256,
+            config["layer_num_anchors"][3] * 21,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
+        self.loc9_2 = nn.Conv2d(
+            256,
+            config["layer_num_anchors"][3] * 4,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
 
         # extra->conv10
         self.conv10_1 = nn.Conv2d(256, 128, kernel_size=1)
         self.bn10_1 = nn.BatchNorm2d(128)
         self.conv10_2 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
         self.bn10_2 = nn.BatchNorm2d(256)
-        self.conf10_2 = nn.Conv2d(256, 4 * 21, kernel_size=3, padding=1, stride=1)
-        self.loc10_2 = nn.Conv2d(256, 4 * 4, kernel_size=3, padding=1, stride=1)
+        self.conf10_2 = nn.Conv2d(
+            256,
+            config["layer_num_anchors"][4] * 21,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
+        self.loc10_2 = nn.Conv2d(
+            256,
+            config["layer_num_anchors"][4] * 4,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
 
         # extra->conv11
         self.conv11_1 = nn.Conv2d(256, 128, kernel_size=1)
         self.conv11_2 = nn.Conv2d(128, 256, kernel_size=3, stride=1)
-        self.conf11_2 = nn.Conv2d(256, 4 * 21, kernel_size=3, padding=1, stride=1)
-        self.loc11_2 = nn.Conv2d(256, 4 * 4, kernel_size=3, padding=1, stride=1)
+        self.conf11_2 = nn.Conv2d(
+            256,
+            config["layer_num_anchors"][5] * 21,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
+        self.loc11_2 = nn.Conv2d(
+            256,
+            config["layer_num_anchors"][5] * 4,
+            kernel_size=3,
+            padding=1,
+            stride=1,
+        )
 
     def forward(self, x):
         confs, locs = [], []
@@ -173,18 +245,20 @@ class SSD(nn.Module):
 
         if self.mode == "train":
             return (
-                confs.view(confs.size(0), -1, 21),
+                confs.view(confs.size(0), -1, config["num_classes"]),
                 locs.view(locs.size(0), -1, 4),
             )
         else:
             return (
-                F.softmax(confs.view(confs.size(0), -1, 21), dim=-1),
+                F.softmax(
+                    confs.view(confs.size(0), -1, config["num_classes"]),
+                    dim=-1,
+                ),
                 locs.view(locs.size(0), -1, 4),
             )
 
     def loadPretrainedWeights(self):
-        checkpoint = "https://download.pytorch.org/models/vgg16_bn-6c64b313.pth"
-        vgg_state_dict = load_state_dict_from_url(checkpoint)
+        vgg_state_dict = load_state_dict_from_url(config["state_dict_url"])
         pretrained_model_keys = list(vgg_state_dict.keys())
         pretrained_model_values = list(vgg_state_dict.values())
         ssd_model_keys = list(self.state_dict().keys())
@@ -211,12 +285,12 @@ class SSD(nn.Module):
 
 def showNetworkMainStructure():
     model = SSD("train")
-    summary(model, torch.randn(1, 3, 300, 300))
+    summary(model, torch.randn(1, 3, config["image_size"], config["image_size"]))
 
 
 def showOutputTensorShape():
     model = SSD("train")
-    x = torch.randn(1, 3, 300, 300)
+    x = torch.randn(1, 3, config["image_size"], config["image_size"])
     confs, locs = model(x)
     print(confs.shape, locs.shape)
 

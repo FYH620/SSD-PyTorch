@@ -1,5 +1,6 @@
 import torch
 from tqdm import tqdm
+from .utils_configuration import voc_ssd300_configuration as config
 
 
 def fit_one_epoch(
@@ -99,7 +100,7 @@ def fit_one_epoch(
 
     if scheduler is not None:
         scheduler.step()
-    if epoch < 40 and epoch % 2 == 0:
+    if epoch < 40 and epoch % config["save_period"] == 0:
         torch.save(
             model.state_dict(),
             save_dir

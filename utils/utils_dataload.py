@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 from .utils_augmentation import BaseTransform, MultipleTransform
+from .utils_configuration import voc_ssd300_configuration as config
 import xml.etree.ElementTree as ET
 import numpy as np
 import torch
@@ -8,7 +9,7 @@ import os
 
 
 class VOCDataset(Dataset):
-    def __init__(self, mode, size=300, keep_difficult=False):
+    def __init__(self, mode, size=config["image_size"], keep_difficult=False):
         """
         Args:
             mode(string): collection of data sources(support 'train'/'val'/'test')

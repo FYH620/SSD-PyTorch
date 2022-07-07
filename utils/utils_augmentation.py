@@ -1,11 +1,13 @@
 import numpy as np
 import cv2
+from .utils_configuration import imagenet_rgb_means as MEAN
+from .utils_configuration import voc_ssd300_configuration as config
 
 
 class BaseTransform(object):
-    def __init__(self, size=300):
+    def __init__(self, size=config["image_size"], mean=MEAN):
         self.size = size
-        self.mean = np.array([123, 117, 104], dtype=np.float32)
+        self.mean = mean
 
     def __call__(self, img, boxes, labels):
         img = cv2.resize(img, dsize=(self.size, self.size))
@@ -30,8 +32,8 @@ class ConvertIntToFloat(object):
 
 
 class SubtractMean(object):
-    def __init__(self):
-        self.mean = np.array([123, 117, 104], dtype=np.float32)
+    def __init__(self, mean=MEAN):
+        self.mean = mean
 
     def __call__(self, img, boxes, labels):
         img -= self.mean
@@ -55,7 +57,7 @@ class ToRelativeCoords(object):
 
 
 class Resize(object):
-    def __init__(self, size=300):
+    def __init__(self, size=config["image_size"]):
         self.size = size
 
     def __call__(self, img, boxes, labels):

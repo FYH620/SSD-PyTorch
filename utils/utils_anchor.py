@@ -1,15 +1,16 @@
 import torch
 from math import sqrt
 from itertools import product
+from .utils_configuration import voc_ssd300_configuration as config
 
 
 class AnchorBoxes:
     def __init__(self):
-        self.image_size = 300
-        self.feature_map_sizes = [38, 19, 10, 5, 3, 1]
-        self.min_sizes = [30, 60, 111, 162, 213, 264]
-        self.max_sizes = [60, 111, 162, 213, 264, 315]
-        self.aspect_ratios = [[2], [2, 3], [2, 3], [2, 3], [2], [2]]
+        self.image_size = config["image_size"]
+        self.feature_map_sizes = config["feature_map_sizes"]
+        self.min_sizes = config["min_sizes"]
+        self.max_sizes = config["max_sizes"]
+        self.aspect_ratios = config["aspect_ratios"]
 
     def getAnchorBoxesForEachImage(self):
         anchor_boxes = []

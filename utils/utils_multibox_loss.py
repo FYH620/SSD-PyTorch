@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from torch import nn
 from copy import deepcopy
 from .utils_anchor import AnchorBoxes
+from .utils_configuration import voc_ssd300_configuration as config
 from .utils_auxiliary import (
     iouMatrix,
     centerCoordsToPointCoords,
@@ -21,7 +22,7 @@ class MultiboxLoss(nn.Module):
         self.anchor_boxes_coords = AnchorBoxes().getAnchorBoxesForEachImage()
         if self.use_cuda:
             self.anchor_boxes_coords = self.anchor_boxes_coords.cuda()
-        self.loc_variance = [0.1, 0.2]
+        self.loc_variance = config["variance"]
 
     def forward(self, predict_offset_coords, predict_confidences, targets):
         num_batch = len(predict_offset_coords)

@@ -10,7 +10,7 @@ from math import cos, pi
 from nets.ssd import SSD
 from utils.utils_dataload import VOCDataset
 from utils.utils_multibox_loss import MultiboxLoss
-from utils.util_fit import fit_one_epoch
+from utils.utils_fit import fit_one_epoch
 
 
 def str2bool(v):
