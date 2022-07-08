@@ -10,14 +10,16 @@ from math import cos, pi
 from nets.ssd import SSD
 from utils.utils_dataload import VOCDataset
 from utils.utils_multibox_loss import MultiboxLoss
-from utils.utils_fit import fit_one_epoch
+from utils.utils_configuration import train_process_configuration as train_config
+from utils.utils_configuration import voc_ssd300_configuration as ssd_config
+from utils.utils_fit import fitOneEpoch
 
 
-def str2bool(v):
+def strToBool(v):
     return v.lower() in ("yes", "true", "1")
 
 
-def detection_collate(batch):
+def detectionCollateFunction(batch):
     targets = []
     imgs = []
     for sample in batch:
@@ -26,14 +28,14 @@ def detection_collate(batch):
     return torch.stack(imgs, 0), targets
 
 
-def warmup_cosine_lr(epoch):
+def warmupCosineLearningRate(epoch):
     if epoch < args.warmup_epoch:
         return (1 + epoch) / args.warmup_epoch
     else:
         return 0.95 ** (epoch - args.warmup_epoch + 1)
 
 
-def cosine_unfreeze_lr(epoch):
+def cosineUnfreezeLearningRate(epoch):
     return (
         args.min_lr
         + 0.5
@@ -44,43 +46,86 @@ def cosine_unfreeze_lr(epoch):
 
 parser = argparse.ArgumentParser(description="Configuration of training parameters.")
 parser.add_argument(
-    "--init_batchsize", default=32, type=int, help="Batch size for training."
+    "--init_batchsize",
+    default=train_config["init_batchsize"],
+    type=int,
+    help="Batch size for training.",
 )
 parser.add_argument(
     "--unfreeze_batchsize",
-    default=16,
+    default=train_config["unfreeze_batchsize"],
     type=int,
     help="Batch size for unfreeze training.",
 )
 parser.add_argument(
-    "--resume", default=False, type=str2bool, help="Whether to continue training."
+    "--resume",
+    default=train_config["resume_train"],
+    type=strToBool,
+    help="Whether to continue training.",
 )
 parser.add_argument(
-    "--resume_path", default=None, type=str, help="Resume model path for your training."
+    "--resume_path",
+    default=train_config["resume_weights_path"],
+    type=str,
+    help="Resume model path for your training.",
 )
-parser.add_argument("--warmup_epoch", default=5, type=int, help="Warmup epoch.")
-parser.add_argument("--init_epoch", default=0, type=int, help="Start epoch.")
-parser.add_argument("--unfreeze_epoch", default=40, type=int, help="Unfreeze epoch.")
-parser.add_argument("--end_epoch", default=120, type=int, help="End epoch.")
+parser.add_argument(
+    "--warmup_epoch",
+    default=train_config["warmup_epoch"],
+    type=int,
+    help="Warmup epoch.",
+)
+parser.add_argument(
+    "--init_epoch",
+    default=train_config["init_epoch"],
+    type=int,
+    help="Start epoch.",
+)
+parser.add_argument(
+    "--unfreeze_epoch",
+    default=train_config["unfreeze_epoch"],
+    type=int,
+    help="Unfreeze epoch.",
+)
+parser.add_argument(
+    "--end_epoch",
+    default=train_config["end_epoch"],
+    type=int,
+    help="End epoch.",
+)
 parser.add_argument(
     "--num_workers",
-    default=4,
+    default=train_config["num_workers"],
     type=int,
     help=" The Number of workers used in dataloading.",
 )
 parser.add_argument(
-    "--cuda", default=False, type=str2bool, help="Use CUDA to train model."
+    "--cuda",
+    default=train_config["use_cuda"],
+    type=strToBool,
+    help="Use CUDA to train model.",
 )
 parser.add_argument(
-    "--init_lr", default=1e-4, type=float, help="Initial learning rate."
+    "--init_lr",
+    default=train_config["init_lr"],
+    type=float,
+    help="Initial learning rate.",
 )
 parser.add_argument(
-    "--unfreeze_lr", default=1e-5, type=float, help="Unfreeze learning rate."
+    "--unfreeze_lr",
+    default=train_config["unfreeze_lr"],
+    type=float,
+    help="Unfreeze learning rate.",
 )
-parser.add_argument("--min_lr", default=1e-6, type=float, help="Min learning rate.")
+parser.add_argument(
+    "--min_lr",
+    default=train_config["min_lr"],
+    type=float,
+    help="Min learning rate.",
+)
 parser.add_argument(
     "--save_folder",
-    default="weights/",
+    default=train_config["save_weights_folder"],
     help="Directory for saving checkpoint models.",
 )
 args = parser.parse_args()
@@ -98,12 +143,12 @@ def train():
     ssd_model.initWeights()
     print("Freeze some layers to train.")
     for step, param in enumerate(ssd_model.parameters()):
-        if step < 20:
+        if step < train_config["num_freeze_layers"]:
             param.requires_grad = False
 
     if args.resume:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        ssd_model.load_state_dict(torch.load(args.resume_path))
+        ssd_model.load_state_dict(torch.load(args.resume_path, map_location=device))
         print("Loading the resume weights {} done.".format(args.resume_path))
     else:
         ssd_model.loadPretrainedWeights()
@@ -114,8 +159,16 @@ def train():
         ssd_model = ssd_model.cuda()
 
     print("Loading the dataset.")
-    train_dataset = VOCDataset(mode="train", size=300, keep_difficult=False)
-    val_dataset = VOCDataset(mode="val", size=300, keep_difficult=False)
+    train_dataset = VOCDataset(
+        mode="train",
+        size=ssd_config["image_size"],
+        keep_difficult=False,
+    )
+    val_dataset = VOCDataset(
+        mode="val",
+        size=ssd_config["image_size"],
+        keep_difficult=False,
+    )
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=args.init_batchsize,
@@ -123,7 +176,7 @@ def train():
         shuffle=True,
         pin_memory=True,
         drop_last=True,
-        collate_fn=detection_collate,
+        collate_fn=detectionCollateFunction,
     )
     val_dataloader = DataLoader(
         val_dataset,
@@ -132,16 +185,16 @@ def train():
         shuffle=True,
         pin_memory=True,
         drop_last=True,
-        collate_fn=detection_collate,
+        collate_fn=detectionCollateFunction,
     )
 
     print("Initializing the optimizer,scheduler and the loss function.")
     optimizer = Adam(ssd_model.parameters(), lr=args.init_lr, weight_decay=5e-4)
-    scheduler = LambdaLR(optimizer, lr_lambda=warmup_cosine_lr)
+    scheduler = LambdaLR(optimizer, lr_lambda=warmupCosineLearningRate)
     criterion = MultiboxLoss(
-        num_classes=21,
-        overlap_threshold=0.5,
-        neg_pos_ratio=3,
+        num_classes=ssd_config["num_classes"],
+        overlap_threshold=ssd_config["positive_negative_iou_threshold"],
+        neg_pos_ratio=ssd_config["negative_positive_ration"],
         use_cuda=args.cuda,
     )
 
@@ -151,7 +204,7 @@ def train():
     val_epoch_step = num_val // args.init_batchsize
 
     for epoch in range(args.init_epoch, args.unfreeze_epoch):
-        fit_one_epoch(
+        fitOneEpoch(
             epoch=epoch,
             end_epoch=args.unfreeze_epoch,
             model=ssd_model,
@@ -168,15 +221,24 @@ def train():
 
     print("The model has been unfreezed.")
     for step, param in enumerate(ssd_model.parameters()):
-        if step < 20:
+        if step < train_config["num_freeze_layers"]:
             param.requires_grad = True
+
     optimizer = Adam(ssd_model.parameters(), lr=args.unfreeze_lr, weight_decay=1e-4)
-    scheduler = LambdaLR(optimizer, lr_lambda=cosine_unfreeze_lr)
+    scheduler = LambdaLR(optimizer, lr_lambda=cosineUnfreezeLearningRate)
     train_epoch_step = num_train // args.unfreeze_batchsize
     val_epoch_step = num_val // args.unfreeze_batchsize
 
-    train_dataset = VOCDataset(mode="train", size=300, keep_difficult=False)
-    val_dataset = VOCDataset(mode="val", size=300, keep_difficult=False)
+    train_dataset = VOCDataset(
+        mode="train",
+        size=ssd_config["image_size"],
+        keep_difficult=False,
+    )
+    val_dataset = VOCDataset(
+        mode="val",
+        size=ssd_config["image_size"],
+        keep_difficult=False,
+    )
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=args.unfreeze_batchsize,
@@ -184,7 +246,7 @@ def train():
         shuffle=True,
         pin_memory=True,
         drop_last=True,
-        collate_fn=detection_collate,
+        collate_fn=detectionCollateFunction,
     )
     val_dataloader = DataLoader(
         val_dataset,
@@ -193,11 +255,11 @@ def train():
         shuffle=True,
         pin_memory=True,
         drop_last=True,
-        collate_fn=detection_collate,
+        collate_fn=detectionCollateFunction,
     )
 
     for epoch in range(args.unfreeze_epoch, args.end_epoch):
-        fit_one_epoch(
+        fitOneEpoch(
             epoch=epoch,
             end_epoch=args.end_epoch,
             model=ssd_model,

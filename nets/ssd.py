@@ -45,7 +45,7 @@ class SSD(nn.Module):
         # num_anchors * (num_classes+background)
         self.conf4_3 = nn.Conv2d(
             512,
-            config["layer_num_anchors"][0] * 21,
+            config["layer_num_anchors"][0] * config["num_classes"],
             kernel_size=3,
             padding=1,
             stride=1,
@@ -78,7 +78,7 @@ class SSD(nn.Module):
         self.bn7_1 = nn.BatchNorm2d(1024)
         self.conf7_1 = nn.Conv2d(
             1024,
-            config["layer_num_anchors"][1] * 21,
+            config["layer_num_anchors"][1] * config["num_classes"],
             kernel_size=3,
             padding=1,
             stride=1,
@@ -98,7 +98,7 @@ class SSD(nn.Module):
         self.bn8_2 = nn.BatchNorm2d(512)
         self.conf8_2 = nn.Conv2d(
             512,
-            config["layer_num_anchors"][2] * 21,
+            config["layer_num_anchors"][2] * config["num_classes"],
             kernel_size=3,
             padding=1,
             stride=1,
@@ -118,7 +118,7 @@ class SSD(nn.Module):
         self.bn9_2 = nn.BatchNorm2d(256)
         self.conf9_2 = nn.Conv2d(
             256,
-            config["layer_num_anchors"][3] * 21,
+            config["layer_num_anchors"][3] * config["num_classes"],
             kernel_size=3,
             padding=1,
             stride=1,
@@ -138,7 +138,7 @@ class SSD(nn.Module):
         self.bn10_2 = nn.BatchNorm2d(256)
         self.conf10_2 = nn.Conv2d(
             256,
-            config["layer_num_anchors"][4] * 21,
+            config["layer_num_anchors"][4] * config["num_classes"],
             kernel_size=3,
             padding=1,
             stride=1,
@@ -156,7 +156,7 @@ class SSD(nn.Module):
         self.conv11_2 = nn.Conv2d(128, 256, kernel_size=3, stride=1)
         self.conf11_2 = nn.Conv2d(
             256,
-            config["layer_num_anchors"][5] * 21,
+            config["layer_num_anchors"][5] * config["num_classes"],
             kernel_size=3,
             padding=1,
             stride=1,
