@@ -57,7 +57,7 @@ def fitOneEpoch(
             train_num += train_imgs.size(0)
             pbar.set_postfix(
                 {
-                    "train_loss": train_loss / train_num,
+                    "train_loss": round(train_loss / train_num, 3),
                     "lr": optimizer.state_dict()["param_groups"][0]["lr"],
                 }
             )
@@ -92,7 +92,7 @@ def fitOneEpoch(
             val_loss += loss.item() * val_imgs.size(0)
             pbar.set_postfix(
                 {
-                    "val_loss": val_loss / val_num,
+                    "val_loss": round(val_loss / val_num, 3),
                     "lr": optimizer.state_dict()["param_groups"][0]["lr"],
                 }
             )
@@ -104,12 +104,14 @@ def fitOneEpoch(
         torch.save(
             model.state_dict(),
             save_dir
-            + f"ep{epoch+1}-train{train_loss/train_num}-val{val_loss/val_num}.pth",
+            + f"ep{epoch+1}-train{round(train_loss/train_num,3)}-val{round(val_loss/val_num,3)}.pth",
         )
     if epoch >= config["unfreeze_epoch"]:
         torch.save(
             model.state_dict(),
             save_dir
-            + f"ep{epoch+1}-train{train_loss/train_num}-val{val_loss/val_num}.pth",
+            + f"ep{epoch+1}-train{round(train_loss/train_num,3)}-val{round(val_loss/val_num,3)}.pth",
         )
-    print(f"TRAIN_LOSS:{train_loss / train_num};VAL_LOSS:{val_loss / val_num}")
+    print(
+        f"train_loss:{round(train_loss / train_num,3)};val_loss:{round(val_loss / val_num,3)}"
+    )

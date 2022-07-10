@@ -52,5 +52,5 @@ predict_process_configuration = {
     "nms_iou_threshold": 0.5,
     "confidence_score": 0.4,
     "img_file_path": "./imgs/cat.jpg",
-    "trained_weights_path": "./weights/gpu_trained_converge_voc2007_weights.pth",
+    "trained_weights_path": "./weights/trained.pth",
 }
