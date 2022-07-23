@@ -9,7 +9,7 @@ import os
 
 
 class VOCDataset(Dataset):
-    def __init__(self, mode, size=config["image_size"], keep_difficult=False):
+    def __init__(self, mode, size=config["image_size"], keep_difficult=True):
         """
         Args:
             mode(string): collection of data sources(support 'train'/'val'/'test')
@@ -22,7 +22,7 @@ class VOCDataset(Dataset):
 
         self.augment = (
             MultipleTransform(self.size)
-            if self.mode == "train"
+            if self.mode == "trainval"
             else BaseTransform(self.size)
         )
         self.VOCDATASET_PATH = os.path.join(".", "VOCdevkit")

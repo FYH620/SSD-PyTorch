@@ -1,18 +1,20 @@
 import numpy as np
 import cv2
 from .utils_configuration import imagenet_rgb_means as MEAN
+from .utils_configuration import imagenet_rgb_stds as STD
 from .utils_configuration import voc_ssd300_configuration as config
 
 
 class BaseTransform(object):
-    def __init__(self, size=config["image_size"], mean=MEAN):
+    def __init__(self, size=config["image_size"], mean=MEAN, std=STD):
         self.size = size
         self.mean = mean
+        self.std = std
 
     def __call__(self, img, boxes, labels):
         img = cv2.resize(img, dsize=(self.size, self.size))
         img = img.astype(np.float32)
-        img -= self.mean
+        img = (img - self.mean) / self.std
         return img, boxes, labels
 
 
@@ -32,11 +34,12 @@ class ConvertIntToFloat(object):
 
 
 class SubtractMean(object):
-    def __init__(self, mean=MEAN):
+    def __init__(self, mean=MEAN, std=STD):
         self.mean = mean
+        self.std = std
 
     def __call__(self, img, boxes, labels):
-        img -= self.mean
+        img = (img - self.mean) / self.std
         return img, boxes, labels
 
 

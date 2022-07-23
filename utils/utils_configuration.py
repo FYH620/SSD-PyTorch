@@ -12,6 +12,7 @@ VOC_CLASS_NAMES = (
 INDEX_TO_NAMES = dict(zip(range(len(VOC_CLASS_NAMES)), VOC_CLASS_NAMES))
 
 imagenet_rgb_means = np.array([123, 117, 104], dtype=np.float32)
+imagenet_rgb_stds = np.array([58, 57, 57], dtype=np.float32)
 voc_ssd300_configuration = {
     "num_classes": 21,
     "feature_map_sizes": [38, 19, 10, 5, 3, 1],
@@ -34,13 +35,13 @@ train_process_configuration = {
     "unfreeze_epoch": 40,
     "end_epoch": 120,
     "num_workers": 4,
-    "use_cuda": False,
+    "use_cuda": True,
     "init_lr": 1e-3,
     "unfreeze_lr": 1e-4,
     "min_lr": 1e-5,
     "save_weights_folder": "weights/",
     "num_freeze_layers": 28,
-    "save_period": 10,
+    "save_period": 3,
 }
 
 predict_process_configuration = {
@@ -49,8 +50,8 @@ predict_process_configuration = {
     "font_file_path": "C:/Windows/Fonts/simhei.ttf",
     "variance": [0.1, 0.2],
     "num_classes": 21,
-    "nms_iou_threshold": 0.5,
-    "confidence_score": 0.4,
+    "nms_iou_threshold": 0.45,
+    "confidence_score": 0.35,
     "img_file_path": "./imgs/cat.jpg",
     "trained_weights_path": "./weights/trained.pth",
 }
