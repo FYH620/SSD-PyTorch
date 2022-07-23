@@ -160,14 +160,14 @@ def train():
 
     print("Loading the dataset.")
     train_dataset = VOCDataset(
-        mode="train",
+        mode="trainval",
         size=ssd_config["image_size"],
-        keep_difficult=False,
+        keep_difficult=True,
     )
     val_dataset = VOCDataset(
-        mode="val",
+        mode="test",
         size=ssd_config["image_size"],
-        keep_difficult=False,
+        keep_difficult=True,
     )
     train_dataloader = DataLoader(
         train_dataset,
@@ -230,14 +230,14 @@ def train():
     val_epoch_step = num_val // args.unfreeze_batchsize
 
     train_dataset = VOCDataset(
-        mode="train",
+        mode="trainval",
         size=ssd_config["image_size"],
-        keep_difficult=False,
+        keep_difficult=True,
     )
     val_dataset = VOCDataset(
-        mode="val",
+        mode="test",
         size=ssd_config["image_size"],
-        keep_difficult=False,
+        keep_difficult=True,
     )
     train_dataloader = DataLoader(
         train_dataset,
